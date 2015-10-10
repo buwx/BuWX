@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BuWX</string>
+    <string name="appwidget_text">0°C</string>
+    <string name="add_widget">Add widget</string>
+</resources>
