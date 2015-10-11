@@ -1,14 +1,6 @@
 apply plugin: 'com.android.application'
 
 android {
-    signingConfigs {
-        config {
-            keyAlias 'buchfink'
-            keyPassword 'dCaRQxP1-H'
-            storeFile file('C:/Users/Micha/Documents/etc/Security/keystore.buchfink')
-            storePassword 'dCaRQxP1-H'
-        }
-    }
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
     defaultConfig {
