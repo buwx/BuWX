@@ -1,6 +1,15 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:padding="@dimen/widget_margin" android:background="@drawable/wxshape">
+    android:padding="@dimen/widget_margin" android:background="#00000000">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/view_background"
+        android:background="@drawable/wxshape"/>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent" android:layout_height="match_parent">
 
     <TextView
         android:layout_width="wrap_content"
@@ -51,4 +60,5 @@
         android:layout_below="@+id/view_windSpeed"
         android:layout_centerHorizontal="true" />
 
+    </RelativeLayout>
 </RelativeLayout>

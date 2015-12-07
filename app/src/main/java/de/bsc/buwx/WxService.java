@@ -51,16 +51,19 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public class WxService extends Service {
 
     private static final String TAG_NAME = "WxService";
+    private static final String API_URL = "https://ws.buwx.de/api/wxdata.xml";
+    private static final String EMPTY_VALUE = "-";
 
     private BroadcastReceiver receiver = null;
 
     private boolean screenOn = true;
 
-    private String outTemp = "-";
-    private String outHumidity = "-";
-    private String dailyRain = "-";
-    private String windSpeed = "-";
-    private String windDir = "-";
+    private String outTemp = EMPTY_VALUE;
+    private String outHumidity = EMPTY_VALUE;
+    private String dailyRain = EMPTY_VALUE;
+    private String windSpeed = EMPTY_VALUE;
+    private String windDir = EMPTY_VALUE;
+    private long timeStamp = 0;
 
     public WxService() {
         if (Wx.DEV) Log.d(TAG_NAME, "WxService");
@@ -125,18 +128,19 @@ public class WxService extends Service {
         if (Wx.DEV) Log.d(TAG_NAME, "loadData");
         boolean validData = false;
         try {
-            URL url = new URL("http://ws.buwx.de/wxdata.xml");
+            URL url = new URL(API_URL);
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document document = db.parse(new InputSource(url.openStream()));
             document.getDocumentElement().normalize();
             NodeList nodes = document.getElementsByTagName("wxdata");
             Element wxdata = (nodes != null && nodes.getLength() > 0) ? (Element) nodes.item(0) : null;
-            outTemp = getElementByName(wxdata, "outTemp");
-            outHumidity = getElementByName(wxdata, "outHumidity");
-            dailyRain = getElementByName(wxdata, "dailyRain");
-            windSpeed = getElementByName(wxdata, "windSpeed");
-            windDir = getElementByName(wxdata, "windDir");
+            outTemp = getStringValueByName(wxdata, "outTemp");
+            outHumidity = getStringValueByName(wxdata, "outHumidity");
+            dailyRain = getStringValueByName(wxdata, "dailyRain");
+            windSpeed = getStringValueByName(wxdata, "windSpeed");
+            windDir = getStringValueByName(wxdata, "windDir");
+            timeStamp = getLongValueByName(wxdata, "time");
             validData = true;
         } catch (Exception e) {
             if (Wx.DEV) Log.d(TAG_NAME, e.toString());
@@ -150,6 +154,10 @@ public class WxService extends Service {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
         RemoteViews views = new RemoteViews(getPackageName(), R.layout.wx_widget);
 
+        long currentTimeStamp = System.currentTimeMillis()/1000;
+        int shapeId = currentTimeStamp - timeStamp < 600 ? // 10 min
+                R.drawable.wxshape : R.drawable.wxshape_outdated;
+        views.setImageViewResource(R.id.view_background, shapeId);
         views.setTextViewText(R.id.view_outTemp, outTemp);
         views.setTextViewText(R.id.view_outHumidity, outHumidity);
         views.setTextViewText(R.id.view_dailyRain, dailyRain);
@@ -161,7 +169,7 @@ public class WxService extends Service {
         appWidgetManager.updateAppWidget(thisWidget, views);
     }
 
-    static private String getElementByName(Element element, String name) {
+    static private String getStringValueByName(Element element, String name) {
         if (element != null) {
             NodeList nodes = element.getElementsByTagName(name);
             if (nodes != null && nodes.getLength() > 0) {
@@ -171,6 +179,19 @@ public class WxService extends Service {
                     return String.valueOf(names.item(0).getNodeValue());
             }
         }
-        return "-";
+        return EMPTY_VALUE;
+    }
+
+    static private long getLongValueByName(Element element, String name) {
+
+        String stringValue = getStringValueByName(element, name);
+        try {
+            if (!EMPTY_VALUE.equals(stringValue))
+                return Long.parseLong(stringValue);
+        }
+        catch (NumberFormatException e) {
+            // ignore;
+        }
+        return 0;
     }
 }
