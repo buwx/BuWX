@@ -151,13 +151,12 @@ public class WxService extends Service {
     private void updateWidget() {
         if (Wx.DEV) Log.d(TAG_NAME, "updateWidget");
 
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
         RemoteViews views = new RemoteViews(getPackageName(), R.layout.wx_widget);
 
         long currentTimeStamp = System.currentTimeMillis()/1000;
         int shapeId = currentTimeStamp - timeStamp < 600 ? // 10 min
                 R.drawable.wxshape : R.drawable.wxshape_outdated;
-        views.setImageViewResource(R.id.view_background, shapeId);
+        views.setInt(R.id.widget_layout, "setBackgroundResource", shapeId);
         views.setTextViewText(R.id.view_outTemp, outTemp);
         views.setTextViewText(R.id.view_outHumidity, outHumidity);
         views.setTextViewText(R.id.view_dailyRain, dailyRain);
@@ -165,6 +164,7 @@ public class WxService extends Service {
         views.setTextViewText(R.id.view_windDir, windDir);
 
         // Instruct the widget manager to update the widget
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
         ComponentName thisWidget = new ComponentName(this, WxWidget.class);
         appWidgetManager.updateAppWidget(thisWidget, views);
     }

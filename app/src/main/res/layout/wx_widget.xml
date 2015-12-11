@@ -1,18 +1,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:padding="@dimen/widget_margin"
-    android:background="@android:color/transparent">
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/view_background"
-        android:background="@drawable/wxshape"/>
-
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    android:background="@drawable/wxshape">
 
     <TextView
         android:layout_width="wrap_content"
@@ -62,6 +53,4 @@
         android:id="@+id/view_windDir"
         android:layout_below="@+id/view_windSpeed"
         android:layout_centerHorizontal="true" />
-
-    </RelativeLayout>
 </RelativeLayout>
