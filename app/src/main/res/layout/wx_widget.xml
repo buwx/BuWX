@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="#ffffffff"
-        android:text="-"
+        android:text="@string/default_value"
         android:id="@+id/view_outTemp"
         android:layout_centerHorizontal="true" />
 
@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="#ffffffff"
-        android:text="-"
+        android:text="@string/default_value"
         android:id="@+id/view_outHumidity"
         android:layout_below="@+id/view_outTemp"
         android:layout_centerHorizontal="true" />
@@ -29,8 +29,8 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="#ffffffff"
-        android:text="-"
-        android:id="@+id/view_dailyRain"
+        android:text="@string/default_value"
+        android:id="@+id/view_windSpeed"
         android:layout_below="@+id/view_outHumidity"
         android:layout_centerHorizontal="true" />
 
@@ -39,17 +39,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="#ffffffff"
-        android:text="-"
-        android:id="@+id/view_windSpeed"
-        android:layout_below="@+id/view_dailyRain"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="#ffffffff"
-        android:text="-"
+        android:text="@string/default_value"
         android:id="@+id/view_windDir"
         android:layout_below="@+id/view_windSpeed"
         android:layout_centerHorizontal="true" />

@@ -41,6 +41,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import java.net.URL;
+import java.text.NumberFormat;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -60,7 +61,6 @@ public class WxService extends Service {
 
     private String outTemp = EMPTY_VALUE;
     private String outHumidity = EMPTY_VALUE;
-    private String dailyRain = EMPTY_VALUE;
     private String windSpeed = EMPTY_VALUE;
     private String windDir = EMPTY_VALUE;
     private long timeStamp = 0;
@@ -126,6 +126,8 @@ public class WxService extends Service {
 
     private boolean loadData() {
         if (Wx.DEV) Log.d(TAG_NAME, "loadData");
+
+        NumberFormat f = NumberFormat.getInstance();
         boolean validData = false;
         try {
             URL url = new URL(API_URL);
@@ -135,11 +137,29 @@ public class WxService extends Service {
             document.getDocumentElement().normalize();
             NodeList nodes = document.getElementsByTagName("wxdata");
             Element wxdata = (nodes != null && nodes.getLength() > 0) ? (Element) nodes.item(0) : null;
-            outTemp = getStringValueByName(wxdata, "outTemp");
-            outHumidity = getStringValueByName(wxdata, "outHumidity");
-            dailyRain = getStringValueByName(wxdata, "dailyRain");
-            windSpeed = getStringValueByName(wxdata, "windSpeed");
+
+            // temperature
+            double outTempValue = getDoubleValueByName(wxdata, "outTemp");
+            outTemp = new StringBuilder(f.format(outTempValue))
+                    .append("°C")
+                    .toString();
+
+            // humidity
+            double outHumidityValue = getDoubleValueByName(wxdata, "outHumidity");
+            outHumidity = new StringBuilder(f.format(outHumidityValue))
+                    .append("%")
+                    .toString();
+
+            // wind speed
+            double windSpeedValue = Math.round(getDoubleValueByName(wxdata, "windSpeed"));
+            windSpeed = new StringBuilder(f.format(windSpeedValue))
+                    .append(" km/h")
+                    .toString();
+
+            // wind speed
             windDir = getStringValueByName(wxdata, "windDir");
+
+            // time stamp
             timeStamp = getLongValueByName(wxdata, "time");
             validData = true;
         } catch (Exception e) {
@@ -159,7 +179,6 @@ public class WxService extends Service {
         views.setInt(R.id.widget_layout, "setBackgroundResource", shapeId);
         views.setTextViewText(R.id.view_outTemp, outTemp);
         views.setTextViewText(R.id.view_outHumidity, outHumidity);
-        views.setTextViewText(R.id.view_dailyRain, dailyRain);
         views.setTextViewText(R.id.view_windSpeed, windSpeed);
         views.setTextViewText(R.id.view_windDir, windDir);
 
@@ -193,5 +212,18 @@ public class WxService extends Service {
             // ignore;
         }
         return 0;
+    }
+
+    static private double getDoubleValueByName(Element element, String name) {
+
+        String stringValue = getStringValueByName(element, name);
+        try {
+            if (!EMPTY_VALUE.equals(stringValue))
+                return Double.parseDouble(stringValue);
+        }
+        catch (NumberFormatException e) {
+            // ignore;
+        }
+        return 0.0;
     }
 }

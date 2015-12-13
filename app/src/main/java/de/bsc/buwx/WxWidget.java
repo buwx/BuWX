@@ -69,21 +69,4 @@ public class WxWidget extends AppWidgetProvider {
         final AlarmManager manager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         manager.cancel(service);
     }
-
-    @Override
-    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-
-        if (Wx.DEV) Log.d(LOG_TAG, "onUpdate");
-
-        for (int appWidgetId : appWidgetIds) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.wx_widget);
-            views.setTextViewText(R.id.view_outTemp, "-");
-            views.setTextViewText(R.id.view_outHumidity, "-");
-            views.setTextViewText(R.id.view_dailyRain, "-");
-            views.setTextViewText(R.id.view_windSpeed, "-");
-            views.setTextViewText(R.id.view_windDir, "-");
-            appWidgetManager.updateAppWidget(appWidgetId, views);
-        }
-        super.onUpdate(context, appWidgetManager, appWidgetIds);
-    }
 }
