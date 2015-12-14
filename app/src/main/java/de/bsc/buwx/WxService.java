@@ -146,9 +146,14 @@ public class WxService extends Service {
 
             // humidity
             double outHumidityValue = getDoubleValueByName(wxdata, "outHumidity");
-            outHumidity = new StringBuilder(f.format(outHumidityValue))
-                    .append("%")
-                    .toString();
+            StringBuilder outHumidityBuilder = new StringBuilder(f.format(outHumidityValue))
+                    .append("%");
+            double dailyRainValue = Math.round(getDoubleValueByName(wxdata, "dailyRain"));
+            if (dailyRainValue > 0.0)
+                outHumidityBuilder.append(" ")
+                        .append(f.format(dailyRainValue))
+                        .append("l");
+            outHumidity = outHumidityBuilder.toString();
 
             // wind speed
             double windSpeedValue = Math.round(getDoubleValueByName(wxdata, "windSpeed"));
