@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">BuWX</string>
     <string name="default_value">-</string>
+
+    <string name="title_activity_main">MainActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

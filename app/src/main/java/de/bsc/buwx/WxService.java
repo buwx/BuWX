@@ -23,6 +23,7 @@
  */
 package de.bsc.buwx;
 
+import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
@@ -176,7 +177,12 @@ public class WxService extends Service {
     private void updateWidget() {
         if (Wx.DEV) Log.d(TAG_NAME, "updateWidget");
 
+        Context context = getApplicationContext();
+        Intent intent = new Intent(context, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
         RemoteViews views = new RemoteViews(getPackageName(), R.layout.wx_widget);
+        views.setOnClickPendingIntent(R.id.widget_layout, pendingIntent);
 
         long currentTimeStamp = System.currentTimeMillis()/1000;
         int shapeId = currentTimeStamp - timeStamp < 600 ? // 10 min
