@@ -1,13 +1,14 @@
 package de.bsc.buwx;
 
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.util.Log;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -17,6 +18,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = "MainActivity";
 
+    private SwipeRefreshLayout swipeLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         if (Wx.DEV) Log.d(LOG_TAG, "onCreate");
         setContentView(R.layout.activity_main);
 
-        WebView myWebView = (WebView)findViewById(R.id.fullscreen_content);
+        final WebView myWebView = (WebView)findViewById(R.id.fullscreen_content);
 
         // Note that some of these constants are new as of API 16 (Jelly Bean)
         // and API 19 (KitKat). It is safe to use them, as they are inlined
@@ -82,6 +85,16 @@ public class MainActivity extends AppCompatActivity {
               | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
               | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
               | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
+        swipeLayout = (SwipeRefreshLayout)findViewById(R.id.swipe_container);
+        swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                swipeLayout.setRefreshing(true);
+                myWebView.reload();
+                swipeLayout.setRefreshing(false);
+            }
+        });
     }
 
     @Override
