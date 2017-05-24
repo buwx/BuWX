@@ -53,7 +53,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public class WxService extends Service {
 
     private static final String TAG_NAME = "WxService";
-    private static final String API_URL = "https://ws.buwx.de/api/wxdata.xml";
     private static final String EMPTY_VALUE = "-";
 
     private BroadcastReceiver receiver = null;
@@ -131,7 +130,7 @@ public class WxService extends Service {
         NumberFormat f = NumberFormat.getInstance();
         boolean validData = false;
         try {
-            URL url = new URL(API_URL);
+            URL url = new URL(Wx.API_URL);
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document document = db.parse(new InputSource(url.openStream()));

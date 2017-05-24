@@ -24,8 +24,10 @@
 package de.bsc.buwx;
 
 /**
- * File constants
+ * Application constants
  */
 public class Wx {
     public static boolean DEV = false;
+    public static String API_URL = "https://ws.buwx.de/api/wxdata.xml";
+    public static String WEB_URL = "https://buwx.de";
 }

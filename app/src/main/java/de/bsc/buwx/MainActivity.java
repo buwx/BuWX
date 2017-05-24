@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 //                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
 //                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
-        myWebView.loadUrl("https://buwx.de");
+        myWebView.loadUrl(Wx.WEB_URL);
         WebSettings webSettings = myWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
 
@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
             @SuppressWarnings("deprecation")
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (!url.startsWith("https://buwx.de"))
+                if (!url.startsWith(Wx.WEB_URL))
                     return super.shouldOverrideUrlLoading(view, url);
                 view.loadUrl(url);
                 return false;
