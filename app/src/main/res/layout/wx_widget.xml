@@ -1,14 +1,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_layout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:padding="@dimen/widget_margin"
     android:background="@drawable/wxshape">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textAppearance="@android:style/TextAppearance.Medium"
         android:textColor="#ffffffff"
         android:text="@string/default_value"
         android:id="@+id/view_outTemp"
@@ -17,7 +17,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textAppearance="@android:style/TextAppearance.Small"
         android:textColor="#ffffffff"
         android:text="@string/default_value"
         android:id="@+id/view_outHumidity"
@@ -27,7 +27,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textAppearance="@android:style/TextAppearance.Small"
         android:textColor="#ffffffff"
         android:text="@string/default_value"
         android:id="@+id/view_windSpeed"
@@ -37,7 +37,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textAppearance="@android:style/TextAppearance.Small"
         android:textColor="#ffffffff"
         android:text="@string/default_value"
         android:id="@+id/view_windDir"
