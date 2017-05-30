@@ -66,13 +66,13 @@ public class WxService extends Service {
     private long timeStamp = 0;
 
     public WxService() {
-        if (Wx.DEV) Log.d(TAG_NAME, "WxService");
+        if (Wx.DEV) Log.i(TAG_NAME, "WxService");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        if (Wx.DEV) Log.d(TAG_NAME, "onStartCommand");
+        if (Wx.DEV) Log.i(TAG_NAME, "onStartCommand");
 
         if (receiver == null) {
             IntentFilter screenStateFilter = new IntentFilter();
@@ -82,10 +82,10 @@ public class WxService extends Service {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
-                        if (Wx.DEV) Log.d(TAG_NAME, "screenOff");
+                        if (Wx.DEV) Log.i(TAG_NAME, "screenOff");
                         screenOn = false;
                     } else if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
-                        if (Wx.DEV) Log.d(TAG_NAME, "screenOn");
+                        if (Wx.DEV) Log.i(TAG_NAME, "screenOn");
                         screenOn = true;
                         update();
                     }
@@ -101,7 +101,7 @@ public class WxService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        if (Wx.DEV) Log.d(TAG_NAME, "onBind");
+        if (Wx.DEV) Log.i(TAG_NAME, "onBind");
 
         return null;
     }
@@ -125,7 +125,7 @@ public class WxService extends Service {
     }
 
     private boolean loadData() {
-        if (Wx.DEV) Log.d(TAG_NAME, "loadData");
+        if (Wx.DEV) Log.i(TAG_NAME, "loadData");
 
         NumberFormat f = NumberFormat.getInstance();
         boolean validData = false;
@@ -168,13 +168,13 @@ public class WxService extends Service {
             timeStamp = getLongValueByName(wxdata, "time");
             validData = true;
         } catch (Exception e) {
-            if (Wx.DEV) Log.d(TAG_NAME, e.toString());
+            if (Wx.DEV) Log.i(TAG_NAME, e.toString());
         }
         return validData;
     }
 
     private void updateWidget() {
-        if (Wx.DEV) Log.d(TAG_NAME, "updateWidget");
+        if (Wx.DEV) Log.i(TAG_NAME, "updateWidget");
 
         Context context = getApplicationContext();
         Intent intent = new Intent(context, MainActivity.class);

@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (Wx.DEV) Log.d(LOG_TAG, "onCreate");
+        if (Wx.DEV) Log.i(LOG_TAG, "onCreate");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onRestart() {
         super.onRestart();
 
-        if (Wx.DEV) Log.d(LOG_TAG, "onRestart");
+        if (Wx.DEV) Log.i(LOG_TAG, "onRestart");
 
         WebView webView = (WebView)findViewById(R.id.webview_content);
         webView.reload();

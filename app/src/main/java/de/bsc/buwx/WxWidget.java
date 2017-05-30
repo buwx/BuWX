@@ -25,6 +25,7 @@ package de.bsc.buwx;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
@@ -44,7 +45,12 @@ public class WxWidget extends AppWidgetProvider {
 
     @Override
     public void onEnabled(Context context) {
-        if (Wx.DEV) Log.d(LOG_TAG, "onEnabled");
+        if (Wx.DEV) Log.i(LOG_TAG, "onEnabled");
+
+        if (service == null) {
+            final Intent intent = new Intent(context, WxService.class);
+            service = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        }
 
         final AlarmManager manager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         final Calendar TIME = Calendar.getInstance();
@@ -52,19 +58,24 @@ public class WxWidget extends AppWidgetProvider {
         TIME.set(Calendar.SECOND, 0);
         TIME.set(Calendar.MILLISECOND, 0);
 
-        if (service == null) {
-            final Intent intent = new Intent(context, WxService.class);
-            service = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-        }
-
         manager.setRepeating(AlarmManager.RTC, TIME.getTime().getTime(), 1000 * UPDATE_INTERVAL_SEC, service);
     }
 
     @Override
     public void onDisabled(Context context) {
-        if (Wx.DEV) Log.d(LOG_TAG, "onDisabled");
+        if (Wx.DEV) Log.i(LOG_TAG, "onDisabled");
 
         final AlarmManager manager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         manager.cancel(service);
+    }
+
+    @Override
+    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        super.onUpdate(context, appWidgetManager, appWidgetIds);
+
+        if (Wx.DEV) Log.i(LOG_TAG, "onUpdate");
+
+        if (service == null)
+            onEnabled(context);
     }
 }
