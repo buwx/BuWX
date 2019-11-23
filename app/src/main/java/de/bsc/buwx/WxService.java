@@ -23,6 +23,9 @@
  */
 package de.bsc.buwx;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -32,20 +35,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.text.NumberFormat;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * The Wx Widget
@@ -67,6 +72,28 @@ public class WxService extends Service {
 
     public WxService() {
         if (Wx.DEV) Log.d(TAG_NAME, "WxService");
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        final String channelId = "ForegroundServiceChannel";
+        if (Wx.DEV) Log.d(TAG_NAME, "onCreate");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel serviceChannel = new NotificationChannel(
+                    channelId,
+                    "Foreground Service Channel",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(serviceChannel);
+
+            Notification notification = new NotificationCompat.Builder(this, channelId)
+                    .setContentTitle("Foreground Service")
+                    .build();
+            startForeground(1, notification);
+        }
     }
 
     @Override
@@ -112,7 +139,7 @@ public class WxService extends Service {
 
                 @Override
                 protected Boolean doInBackground(Void... voids) {
-                    return loadData();
+                    return loadJsonData();
                 }
 
                 @Override
@@ -124,31 +151,25 @@ public class WxService extends Service {
         }
     }
 
-    private boolean loadData() {
-        if (Wx.DEV) Log.d(TAG_NAME, "loadData");
+    private boolean loadJsonData() {
+        if (Wx.DEV) Log.d(TAG_NAME, "loadJsonData");
 
         NumberFormat f = NumberFormat.getInstance();
         boolean validData = false;
         try {
-            URL url = new URL(Wx.API_URL);
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document document = db.parse(new InputSource(url.openStream()));
-            document.getDocumentElement().normalize();
-            NodeList nodes = document.getElementsByTagName("wxdata");
-            Element wxdata = (nodes != null && nodes.getLength() > 0) ? (Element) nodes.item(0) : null;
+            JSONObject json = readJsonFromUrl(Wx.JSON_URL);
 
             // temperature
-            double outTempValue = getDoubleValueByName(wxdata, "outTemp");
+            double outTempValue = json.optDouble("outTemp", 0.0);
             outTemp = new StringBuilder(f.format(outTempValue))
                     .append("°C")
                     .toString();
 
-            // humidity
-            double outHumidityValue = getDoubleValueByName(wxdata, "outHumidity");
+            // humidity and rain
+            double outHumidityValue = json.optDouble("outHumidity", 0.0);
             StringBuilder outHumidityBuilder = new StringBuilder(f.format(outHumidityValue))
                     .append("%");
-            double dailyRainValue = Math.round(getDoubleValueByName(wxdata, "dailyRain"));
+            double dailyRainValue = Math.round(json.optDouble("dailyRain", 0.0));
             if (dailyRainValue > 0.0)
                 outHumidityBuilder.append(" ")
                         .append(f.format(dailyRainValue))
@@ -156,21 +177,35 @@ public class WxService extends Service {
             outHumidity = outHumidityBuilder.toString();
 
             // wind speed
-            double windSpeedValue = Math.round(getDoubleValueByName(wxdata, "windSpeed"));
+            double windSpeedValue = Math.round(json.optDouble("windSpeed", 0.0));
             windSpeed = new StringBuilder(f.format(windSpeedValue))
                     .append(" km/h")
                     .toString();
 
             // wind speed
-            windDir = getStringValueByName(wxdata, "windDir");
+            windDir = json.getString("windDir");
 
             // time stamp
-            timeStamp = getLongValueByName(wxdata, "time");
+            timeStamp = json.optLong("time", 0L);
             validData = true;
         } catch (Exception e) {
             if (Wx.DEV) Log.d(TAG_NAME, e.toString());
         }
         return validData;
+    }
+
+    public JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
+        InputStream is = new URL(url).openStream();
+        try {
+            StringBuilder sb = new StringBuilder();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String line = null;
+            while ((line = rd.readLine()) != null)
+                sb.append(line);
+            return new JSONObject(sb.toString());
+        } finally {
+            is.close();
+        }
     }
 
     private void updateWidget() {
@@ -196,44 +231,5 @@ public class WxService extends Service {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
         ComponentName thisWidget = new ComponentName(this, WxWidget.class);
         appWidgetManager.updateAppWidget(thisWidget, views);
-    }
-
-    static private String getStringValueByName(Element element, String name) {
-        if (element != null) {
-            NodeList nodes = element.getElementsByTagName(name);
-            if (nodes != null && nodes.getLength() > 0) {
-                Element nodeElement = (Element)nodes.item(0);
-                NodeList names = nodeElement.getChildNodes();
-                if (names.getLength() > 0)
-                    return String.valueOf(names.item(0).getNodeValue());
-            }
-        }
-        return EMPTY_VALUE;
-    }
-
-    static private long getLongValueByName(Element element, String name) {
-
-        String stringValue = getStringValueByName(element, name);
-        try {
-            if (!EMPTY_VALUE.equals(stringValue))
-                return Long.parseLong(stringValue);
-        }
-        catch (NumberFormatException e) {
-            // ignore;
-        }
-        return 0;
-    }
-
-    static private double getDoubleValueByName(Element element, String name) {
-
-        String stringValue = getStringValueByName(element, name);
-        try {
-            if (!EMPTY_VALUE.equals(stringValue))
-                return Double.parseDouble(stringValue);
-        }
-        catch (NumberFormatException e) {
-            // ignore;
-        }
-        return 0.0;
     }
 }

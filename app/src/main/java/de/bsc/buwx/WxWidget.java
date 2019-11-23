@@ -23,11 +23,13 @@
  */
 package de.bsc.buwx;
 
+import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 import java.util.Calendar;
@@ -40,9 +42,10 @@ public class WxWidget extends AppWidgetProvider {
     private static final String LOG_TAG = "WxWidget";
     private static final int UPDATE_INTERVAL_SEC = 30;
 
-    private PendingIntent service = null;
+    private static PendingIntent service = null;
 
     @Override
+    @TargetApi(Build.VERSION_CODES.O)
     public void onEnabled(Context context) {
         if (Wx.DEV) Log.d(LOG_TAG, "onEnabled");
 
@@ -54,7 +57,10 @@ public class WxWidget extends AppWidgetProvider {
 
         if (service == null) {
             final Intent intent = new Intent(context, WxService.class);
-            service = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                service = PendingIntent.getForegroundService(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+            else
+                service = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
         }
 
         manager.setRepeating(AlarmManager.RTC, TIME.getTime().getTime(), 1000 * UPDATE_INTERVAL_SEC, service);
@@ -64,7 +70,9 @@ public class WxWidget extends AppWidgetProvider {
     public void onDisabled(Context context) {
         if (Wx.DEV) Log.d(LOG_TAG, "onDisabled");
 
-        final AlarmManager manager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        manager.cancel(service);
+        if (service != null) {
+            final AlarmManager manager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+            manager.cancel(service);
+        }
     }
 }
