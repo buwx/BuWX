@@ -4,10 +4,10 @@ android {
     compileSdkVersion 33
     defaultConfig {
         applicationId "de.bsc.buwx"
-        minSdkVersion 14
+        minSdkVersion 20
         targetSdkVersion 33
-        versionCode 13
-        versionName '1.12'
+        versionCode 14
+        versionName '1.13'
     }
     buildTypes {
         release {
