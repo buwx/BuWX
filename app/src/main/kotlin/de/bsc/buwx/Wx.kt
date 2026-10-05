@@ -21,13 +21,15 @@
  *
  * ----------------------------------------------------------------------------
  */
-package de.bsc.buwx;
+package de.bsc.buwx
 
 /**
  * Application constants
  */
-public class Wx {
-    public static boolean DEV = false;
-    public static String JSON_URL = "https://ws.buwx.de/api/wxdata.json";
-    public static String WEB_URL = "https://buwx.de";
+object Wx {
+    @JvmField
+    var DEV: Boolean = false
+    @JvmField
+    var JSON_URL: String = "https://ws.buwx.de/api/wxdata.json"
+    var WEB_URL: String = "https://buwx.de"
 }
