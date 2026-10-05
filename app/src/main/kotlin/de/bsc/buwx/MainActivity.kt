@@ -12,8 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 /**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
+ * Shows the weather station website in a WebView with pull-to-refresh.
  */
 class MainActivity : AppCompatActivity() {
     private var swipeLayout: SwipeRefreshLayout? = null

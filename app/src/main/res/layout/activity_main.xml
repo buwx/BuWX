@@ -7,9 +7,6 @@
     android:fitsSystemWindows="true"
     tools:context="de.bsc.buwx.MainActivity">
 
-    <!-- The primary full-screen view. This can be replaced with whatever view
-         is needed to present your content, e.g. VideoView, SurfaceView,
-         TextureView, etc. -->
     <WebView
         android:id="@+id/webview_content"
         android:layout_width="match_parent"
