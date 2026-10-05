@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Original launcher artwork, scaled to 50dp of the 108dp adaptive icon canvas
+     (about 70% of the visible circle, corners stay inside the mask) -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_launcher_art"
+    android:inset="27%" />

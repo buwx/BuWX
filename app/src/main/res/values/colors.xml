@@ -1,7 +1,16 @@
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <!-- Brand colors taken from the buwx.de website header -->
+    <color name="brand">#0077BB</color>
+    <color name="brand_dark">#00466E</color>
+    <color name="page">#FFFFFF</color>
+    <color name="text_primary">#1F2A33</color>
+    <color name="text_secondary">#55626E</color>
 
-    <color name="black_overlay">#66000000</color>
+    <!-- Widget background per temperature band, translucent like the original widget (alpha 0x54) -->
+    <color name="wx_frost">#543B4A9E</color>
+    <color name="wx_cold">#5400466E</color>
+    <color name="wx_mild">#540077BB</color>
+    <color name="wx_warm">#549A4F00</color>
+    <color name="wx_hot">#54B3261E</color>
+    <color name="wx_stale">#544A5560</color>
 </resources>

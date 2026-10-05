@@ -8,8 +8,8 @@ android {
         applicationId = "de.bsc.buwx"
         minSdk = 23
         targetSdk = 37
-        versionCode = 22
-        versionName = '1.30'
+        versionCode = 23
+        versionName = '1.40'
     }
 
     buildTypes {

@@ -1,50 +1,84 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widget_layout"
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Default (2x1) widget: station and rain on top, large temperature, humidity and wind below -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@android:id/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/widget_margin"
-    android:background="@drawable/wxshape">
+    android:background="@drawable/widget_bg_stale"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="14dp"
+    android:paddingBottom="8dp"
+    tools:ignore="UseCompatTextViewDrawableXml">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/WidgetText.Meta"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/station_name" />
+
+        <TextView
+            android:id="@+id/view_status"
+            style="@style/WidgetText.Meta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/view_rain"
+            style="@style/WidgetText.Detail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:drawableStart="@drawable/ic_wx_rain"
+            android:visibility="gone" />
+    </LinearLayout>
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="@android:style/TextAppearance.Medium"
-        android:textSize="14sp"
-        android:textColor="#ffffffff"
+        android:id="@+id/view_temp"
+        style="@style/WidgetText.Temp"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:autoSizeMaxTextSize="38sp"
+        android:autoSizeMinTextSize="16sp"
+        android:autoSizeTextType="uniform"
+        android:ellipsize="none"
+        android:gravity="center_vertical"
         android:text="@string/default_value"
-        android:id="@+id/view_outTemp"
-        android:layout_centerHorizontal="true" />
+        android:textSize="38sp"
+        tools:targetApi="o" />
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="@android:style/TextAppearance.Small"
-        android:textSize="12sp"
-        android:textColor="#ffffffff"
-        android:text="@string/default_value"
-        android:id="@+id/view_outHumidity"
-        android:layout_below="@+id/view_outTemp"
-        android:layout_centerHorizontal="true" />
+        android:orientation="horizontal">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="@android:style/TextAppearance.Small"
-        android:textSize="12sp"
-        android:textColor="#ffffffff"
-        android:text="@string/default_value"
-        android:id="@+id/view_windSpeed"
-        android:layout_below="@+id/view_outHumidity"
-        android:layout_centerHorizontal="true" />
+        <TextView
+            android:id="@+id/view_humidity"
+            style="@style/WidgetText.Detail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableStart="@drawable/ic_wx_humidity"
+            android:text="@string/default_value" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="@android:style/TextAppearance.Small"
-        android:textSize="12sp"
-        android:textColor="#ffffffff"
-        android:text="@string/default_value"
-        android:id="@+id/view_windDir"
-        android:layout_below="@+id/view_windSpeed"
-        android:layout_centerHorizontal="true" />
-</RelativeLayout>
+        <TextView
+            android:id="@+id/view_wind"
+            style="@style/WidgetText.Detail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:drawableStart="@drawable/ic_wx_wind"
+            android:text="@string/default_value" />
+    </LinearLayout>
+</LinearLayout>

@@ -30,49 +30,27 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.hardware.display.DisplayManager
-import android.os.Build
-import android.os.Handler
-import android.os.Looper
+import android.os.Bundle
 import android.util.Log
 import android.view.Display
+import android.view.View
 import android.widget.RemoteViews
 import de.bsc.buwx.WidgetNotification.clearWidgetUpdate
 import de.bsc.buwx.WidgetNotification.scheduleWidgetUpdate
-import org.json.JSONException
-import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
-import java.net.URL
-import java.nio.charset.Charset
-import java.text.NumberFormat
-import kotlin.math.round
 
 /**
- * Implementation of App Widget functionality.
+ * Home screen widget showing the current measurements of the weather station.
+ *
+ * Measurements are fetched on every update and never cached: when the data is
+ * older than [WxData.MAX_AGE_SEC] or cannot be loaded, the widget shows dashes.
  */
 class WxWidget : AppWidgetProvider() {
-    private var outTemp: String = EMPTY_VALUE
-    private var outHumidity: String = EMPTY_VALUE
-    private var windSpeed: String = EMPTY_VALUE
-    private var windDir: String = EMPTY_VALUE
-    private var timeStamp = System.currentTimeMillis()
 
     override fun onReceive(context: Context, intent: Intent?) {
         super.onReceive(context, intent)
-        if (Wx.DEV) Log.d(LOG_TAG, "onReceive")
-        if (Wx.DEV && (intent != null) && (intent.action != null)) Log.d(
-            LOG_TAG,
-            intent.action!!,
-        )
-        if (isScreenOn(context) && (intent != null) && (intent.action != null) && (intent.action == ACTION_AUTO_UPDATE)) {
-            // load json data in the background an update the widget
-            val myHandler = Handler(Looper.getMainLooper())
-            Thread {
-                if (loadJsonData()) {
-                    myHandler.post { updateWidget(context) }
-                }
-            }.start()
+        if (Wx.DEV) Log.d(LOG_TAG, "onReceive ${intent?.action}")
+        if (intent?.action == ACTION_AUTO_UPDATE && isScreenOn(context)) {
+            refresh(context, activeWidgetIds(context))
         }
     }
 
@@ -82,127 +60,146 @@ class WxWidget : AppWidgetProvider() {
         appWidgetIds: IntArray,
     ) {
         if (Wx.DEV) Log.d(LOG_TAG, "onUpdate")
+        refresh(context, appWidgetIds)
+    }
 
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
-        }
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle,
+    ) {
+        if (Wx.DEV) Log.d(LOG_TAG, "onAppWidgetOptionsChanged")
+        refresh(context, intArrayOf(appWidgetId))
     }
 
     override fun onEnabled(context: Context) {
         if (Wx.DEV) Log.d(LOG_TAG, "onEnabled")
-
         scheduleWidgetUpdate(context)
     }
 
     override fun onDisabled(context: Context) {
         if (Wx.DEV) Log.d(LOG_TAG, "onDisabled")
-
         clearWidgetUpdate(context)
     }
 
-    private fun updateAppWidget(
-        context: Context, appWidgetManager: AppWidgetManager,
+    /** Loads the data in the background and renders all given widgets. */
+    private fun refresh(context: Context, appWidgetIds: IntArray) {
+        if (appWidgetIds.isEmpty()) return
+        val pendingResult = goAsync()
+        Thread {
+            try {
+                val data = try {
+                    WxData.load()
+                } catch (e: Exception) {
+                    if (Wx.DEV) Log.d(LOG_TAG, e.toString())
+                    null
+                }
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                for (appWidgetId in appWidgetIds) {
+                    render(context, appWidgetManager, appWidgetId, data)
+                }
+            } finally {
+                pendingResult.finish()
+            }
+        }.start()
+    }
+
+    private fun render(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
+        data: WxData?,
     ) {
-        val intent = Intent(context, MainActivity::class.java)
-        var pendingFlags = 0
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) pendingFlags =
-            PendingIntent.FLAG_IMMUTABLE
-        val pendingIntent = PendingIntent.getActivity(context, 0, intent, pendingFlags)
+        val layout = layoutFor(appWidgetManager.getAppWidgetOptions(appWidgetId))
+        val views = RemoteViews(context.packageName, layout)
 
-        val views = RemoteViews(context.packageName, R.layout.wx_widget)
-        views.setOnClickPendingIntent(R.id.widget_layout, pendingIntent)
+        val openApp = PendingIntent.getActivity(
+            context,
+            0,
+            Intent(context, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        views.setOnClickPendingIntent(android.R.id.background, openApp)
 
-        val currentTimeStamp = System.currentTimeMillis() / 1000
-        val shapeId = if ((currentTimeStamp - timeStamp) < 600)  // 10 min
-            R.drawable.wxshape else R.drawable.wxshape_outdated
-        views.setInt(R.id.widget_layout, "setBackgroundResource", shapeId)
-        views.setTextViewText(R.id.view_outTemp, outTemp)
-        views.setTextViewText(R.id.view_outHumidity, outHumidity)
-        views.setTextViewText(R.id.view_windSpeed, windSpeed)
-        views.setTextViewText(R.id.view_windDir, windDir)
+        if (data != null && data.isCurrent()) {
+            val humidity = data.formatHumidity()
+            val wind = data.formatWind()
+            val rain = data.formatRain()
+            views.setInt(android.R.id.background, "setBackgroundResource", background(data.tempBand))
+            views.setTextViewText(R.id.view_temp, data.formatTemp())
+            views.setViewVisibility(R.id.view_status, View.GONE)
+            views.setTextViewText(R.id.view_humidity, humidity)
+            views.setContentDescription(
+                R.id.view_humidity,
+                context.getString(R.string.widget_humidity) + " " + humidity,
+            )
+            views.setTextViewText(R.id.view_wind, wind)
+            views.setContentDescription(
+                R.id.view_wind,
+                context.getString(R.string.widget_wind) + " " + wind,
+            )
+            if (rain != null) {
+                views.setTextViewText(R.id.view_rain, rain)
+                views.setContentDescription(
+                    R.id.view_rain,
+                    context.getString(R.string.widget_rain) + " " + rain,
+                )
+                views.setViewVisibility(R.id.view_rain, View.VISIBLE)
+            } else {
+                views.setViewVisibility(R.id.view_rain, View.GONE)
+            }
+        } else {
+            // outdated or missing data: show dashes rather than old values
+            val status = if (data == null) R.string.widget_offline else R.string.widget_stale
+            views.setInt(android.R.id.background, "setBackgroundResource", R.drawable.widget_bg_stale)
+            views.setTextViewText(R.id.view_temp, context.getString(R.string.default_value))
+            views.setTextViewText(R.id.view_status, context.getString(status))
+            views.setViewVisibility(R.id.view_status, View.VISIBLE)
+            views.setTextViewText(R.id.view_humidity, context.getString(R.string.default_value))
+            views.setTextViewText(R.id.view_wind, context.getString(R.string.default_value))
+            views.setViewVisibility(R.id.view_rain, View.GONE)
+        }
 
-        // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
 
-    private fun loadJsonData(): Boolean {
-        if (Wx.DEV) Log.d(LOG_TAG, "loadJsonData")
-
-        val f = NumberFormat.getInstance()
-        var validData = false
-        try {
-            val json = readJsonFromUrl(Wx.JSON_URL)
-
-            // temperature
-            val outTempValue = json.optDouble("outTemp", 0.0)
-            outTemp = f.format(outTempValue) + "°C"
-
-            // humidity and rain
-            val outHumidityValue = json.optDouble("outHumidity", 0.0)
-            val outHumidityBuilder = StringBuilder(f.format(outHumidityValue))
-                .append("%")
-            val dailyRainValue = round(json.optDouble("dailyRain", 0.0))
-            if (dailyRainValue > 0.0) outHumidityBuilder.append(" ")
-                .append(f.format(dailyRainValue))
-                .append("l")
-            outHumidity = outHumidityBuilder.toString()
-
-            // wind speed
-            val windSpeedValue = round(json.optDouble("windSpeed", 0.0))
-            windSpeed = f.format(windSpeedValue) + " km/h"
-
-            // wind speed
-            windDir = json.getString("windDir")
-
-            // time stamp
-            timeStamp = json.optLong("time", 0L)
-            validData = true
-        } catch (e: Exception) {
-            if (Wx.DEV) Log.d(LOG_TAG, e.toString())
-        }
-        return validData
-    }
-
-    @Throws(IOException::class, JSONException::class)
-    fun readJsonFromUrl(url: String?): JSONObject {
-        URL(url).openStream().use { `is` ->
-            val sb = StringBuilder()
-            val rd = BufferedReader(InputStreamReader(`is`, Charset.forName("UTF-8")))
-            var line: String?
-            while ((rd.readLine().also { line = it }) != null) sb.append(line)
-            return JSONObject(sb.toString())
+    /** Picks the layout matching the widget size (portrait dimensions in dp). */
+    private fun layoutFor(options: Bundle): Int {
+        val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+        val maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
+        return when {
+            minWidth in 1 until 100 -> R.layout.wx_widget_small
+            maxHeight >= 130 -> R.layout.wx_widget_tall
+            else -> R.layout.wx_widget
         }
     }
+
+    private fun background(band: WxData.TempBand): Int = when (band) {
+        WxData.TempBand.FROST -> R.drawable.widget_bg_frost
+        WxData.TempBand.COLD -> R.drawable.widget_bg_cold
+        WxData.TempBand.MILD -> R.drawable.widget_bg_mild
+        WxData.TempBand.WARM -> R.drawable.widget_bg_warm
+        WxData.TempBand.HOT -> R.drawable.widget_bg_hot
+    }
+
+    private fun activeWidgetIds(context: Context): IntArray =
+        AppWidgetManager.getInstance(context)
+            .getAppWidgetIds(ComponentName(context, WxWidget::class.java))
 
     /**
      * Is the screen of the device on.
      * @param context the context
      * @return true when (at least one) screen is on
      */
-    fun isScreenOn(context: Context): Boolean {
+    private fun isScreenOn(context: Context): Boolean {
         val dm = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-        var screenOn = false
-        for (display in dm.displays) {
-            if (display.state != Display.STATE_OFF) {
-                screenOn = true
-            }
-        }
-        return screenOn
-    }
-
-    fun updateWidget(context: Context) {
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val thisAppWidgetComponentName =
-            ComponentName(context.packageName, javaClass.name)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidgetComponentName)
-        onUpdate(context, appWidgetManager, appWidgetIds)
+        return dm.displays.any { it.state != Display.STATE_OFF }
     }
 
     companion object {
         const val ACTION_AUTO_UPDATE: String = "de.bsc.buwx.AUTO_UPDATE"
 
         private const val LOG_TAG = "WxWidget"
-        private const val EMPTY_VALUE = "-"
     }
 }

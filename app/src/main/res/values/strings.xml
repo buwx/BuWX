@@ -1,5 +1,16 @@
 <resources>
     <string name="app_name">BuWX</string>
-    <string name="default_value">-</string>
+    <string name="station_name">Scharnhausen</string>
+    <string name="default_value">–</string>
 
+    <string name="widget_description">Aktuelle Messwerte der Wetterstation Scharnhausen</string>
+    <string name="widget_stale">Veraltet</string>
+    <string name="widget_offline">Offline</string>
+    <string name="widget_humidity">Luftfeuchtigkeit</string>
+    <string name="widget_wind">Wind</string>
+    <string name="widget_rain">Niederschlag heute</string>
+
+    <string name="error_title">buwx.de ist nicht erreichbar</string>
+    <string name="error_message">Prüfe die Internetverbindung und lade die Seite neu.</string>
+    <string name="error_retry">Neu laden</string>
 </resources>
