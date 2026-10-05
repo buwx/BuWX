@@ -1,5 +1,6 @@
 package de.bsc.buwx
 
+import androidx.annotation.DrawableRes
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
@@ -24,34 +25,37 @@ data class WxData(
     fun isCurrent(nowSec: Long = System.currentTimeMillis() / 1000): Boolean =
         nowSec - time < MAX_AGE_SEC
 
-    /** Temperature band used to pick the widget background color. */
     val tempBand: TempBand
-        get() = when {
-            outTemp < 0.0 -> TempBand.FROST
-            outTemp < 10.0 -> TempBand.COLD
-            outTemp < 20.0 -> TempBand.MILD
-            outTemp < 28.0 -> TempBand.WARM
-            else -> TempBand.HOT
-        }
+        get() = TempBand.of(outTemp)
 
     // Formatting and rounding as in the original widget
 
-    fun formatTemp(): String = numberFormat().format(outTemp) + "°C"
+    fun formatTemp(): String = format(outTemp) + "°C"
 
-    fun formatHumidity(): String = numberFormat().format(outHumidity) + "%"
+    fun formatHumidity(): String = format(outHumidity) + "%"
 
     fun formatWind(): String {
-        val speed = numberFormat().format(round(windSpeed)) + " km/h"
+        val speed = format(round(windSpeed)) + " km/h"
         return if (windDir.isBlank() || windDir == "-") speed else "$speed $windDir"
     }
 
     /** Daily rain rounded to liters, or null when it rounds to zero. */
-    fun formatRain(): String? {
-        val rain = round(dailyRain)
-        return if (rain > 0.0) numberFormat().format(rain) + "l" else null
-    }
+    fun formatRain(): String? =
+        round(dailyRain).takeIf { it > 0.0 }?.let { format(it) + "l" }
 
-    enum class TempBand { FROST, COLD, MILD, WARM, HOT }
+    /** Temperature bands with the widget background used for each of them. */
+    enum class TempBand(private val upperLimit: Double, @param:DrawableRes val background: Int) {
+        FROST(0.0, R.drawable.widget_bg_frost),
+        COLD(10.0, R.drawable.widget_bg_cold),
+        MILD(20.0, R.drawable.widget_bg_mild),
+        WARM(28.0, R.drawable.widget_bg_warm),
+        HOT(Double.POSITIVE_INFINITY, R.drawable.widget_bg_hot),
+        ;
+
+        companion object {
+            fun of(temp: Double): TempBand = entries.firstOrNull { temp < it.upperLimit } ?: HOT
+        }
+    }
 
     companion object {
         const val MAX_AGE_SEC = 600L
@@ -80,6 +84,6 @@ data class WxData(
             windDir = json.optString("windDir", ""),
         )
 
-        private fun numberFormat(): NumberFormat = NumberFormat.getInstance()
+        private fun format(value: Double): String = NumberFormat.getInstance().format(value)
     }
 }

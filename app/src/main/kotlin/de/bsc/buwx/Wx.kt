@@ -23,13 +23,19 @@
  */
 package de.bsc.buwx
 
+import android.util.Log
+
 /**
  * Application constants
  */
 object Wx {
-    @JvmField
-    var DEV: Boolean = false
-    @JvmField
-    var JSON_URL: String = "https://ws.buwx.de/api/wxdata.json"
-    var WEB_URL: String = "https://buwx.de"
+    /** Enables debug logging. Must be false in commits and releases. */
+    const val DEV = false
+    const val JSON_URL = "https://ws.buwx.de/api/wxdata.json"
+    const val WEB_URL = "https://buwx.de"
+}
+
+/** Logs a debug message when [Wx.DEV] is enabled. */
+inline fun logDebug(tag: String, message: () -> String) {
+    if (Wx.DEV) Log.d(tag, message())
 }
