@@ -7,3 +7,12 @@
 /captures
 /.claude/
 *.hprof
+*.iml
+/.idea/caches
+/.idea/modules
+/.idea/modules.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/deviceManager.xml
+/.idea/appInsightsSettings.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
